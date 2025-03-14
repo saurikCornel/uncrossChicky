@@ -7,7 +7,7 @@ workflows:
           - certificate_credentials # <-- (CERTIFICATE_PRIVATE_KEY)
         vars:
           XCODE_PROJECT: "UncrossChicky.xcodeproj"
-          XCODE_SCHEME: "project"
+          XCODE_SCHEME: "UncrossChicky"
           BUNDLE_ID: "com.uncrosschicky.game"
           APP_STORE_APPLE_ID: 6743162650
         xcode: latest
