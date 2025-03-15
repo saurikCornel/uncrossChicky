@@ -11,6 +11,9 @@ import SwiftUI
 
 
 struct MenuScreen: View {
+    @AppStorage("isSoundEffectsOn") private var isSoundEffectsOn: Bool = false
+    @State private var showSafari = false
+    let url = URL(string: "https://uncrosschicky.top")!
     var body: some View {
         GeometryReader { geo in
             ZStack {
@@ -164,11 +167,12 @@ struct MenuScreen: View {
                 VStack {
                     Spacer()
                     HStack {
-                        Image(.music)
+                        Image(isSoundEffectsOn ? .music : .musicoff)
                             .resizable()
                             .frame(width: 70, height: 70)
                             .onTapGesture {
                                // showPause = true
+                                isSoundEffectsOn.toggle()
 
                             }
                         Spacer()
@@ -177,7 +181,7 @@ struct MenuScreen: View {
                             .resizable()
                             .frame(width: 70, height: 70)
                             .onTapGesture {
-                               // showPause = true
+                                showSafari = true
 
                             }
                     }
@@ -195,6 +199,10 @@ struct MenuScreen: View {
             
             
         )
+        .sheet(isPresented: $showSafari) {
+                    SafariView(url: url)
+                        .ignoresSafeArea()
+                }
     }
 }
 
