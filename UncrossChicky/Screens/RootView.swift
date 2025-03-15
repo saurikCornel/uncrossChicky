@@ -16,6 +16,7 @@ enum SelectedScreen {
     case COLLECT_EGGS
     case PUZZLE_GAME
     case PRIZE
+    case CHICKCOO_GAME
     
 }
 
@@ -104,6 +105,8 @@ struct RootView: View {
                                     } else {
                                         EmptyView()
                                     }
+                                case .CHICKCOO_GAME:
+                                    ChickCooGame()
                                 }
                             }
                             .onAppear {

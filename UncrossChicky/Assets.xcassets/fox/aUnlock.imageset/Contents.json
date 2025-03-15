@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "aUnlock.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
