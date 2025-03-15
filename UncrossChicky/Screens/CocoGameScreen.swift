@@ -1,4 +1,3 @@
-//
 //  CocoGameScreen.swift
 //  UncrossChicky
 //
@@ -9,8 +8,8 @@ import SwiftUI
 
 struct ChickCooGame: View {
     @Environment(\.presentationMode) var presentationMode
-    @State private var foxPosition: CGPoint = CGPoint(x: 0, y: 0)
-    @State private var currentFoxImage: String = "chickenPlayer1"
+    @State private var chickPosition: CGPoint = CGPoint(x: 0, y: 0)
+    @State private var currentChickImage: String = "chickenPlayer1"
     @State private var animationTimer: Timer? = nil
     @State private var coins: [CGPoint] = []
     @State private var bonusItems: [CGPoint] = []
@@ -18,7 +17,6 @@ struct ChickCooGame: View {
     @AppStorage("coins") var score: Int = 0
     @State private var timeRemaining = 60
     @State private var isGameActive = true
-    
     
     @State var showPauseScreen = false
     @State var gameOver = false
@@ -37,18 +35,8 @@ struct ChickCooGame: View {
                 VStack {
                     ZStack {
                         HStack {
-                            //                        Button(action: {
-                            //                            presentationMode.wrappedValue.dismiss()
-                            //                        }) {
-                            //                            Image("backBtn")
-                            //                                .resizable()
-                            //                                .frame(width: 30, height: 30)
-                            //                        }
                             Spacer()
-//                            ScoreView()
-//                                .scaleEffect(0.74)
                         }
-                      
                     }
                     .padding(.top)
                     .padding(.horizontal)
@@ -60,26 +48,19 @@ struct ChickCooGame: View {
                         
                         ZStack(alignment: .topLeading) {
                             GridView(gridSize: gridSize, cellSize: cellSize, coins: coins, bonusItems: bonusItems, bushes: bushes)
-                            Image(currentFoxImage)
+                            Image(currentChickImage)
                                 .resizable()
                                 .frame(width: cellSize * 0.75, height: cellSize * 0.75)
                                 .foregroundColor(.orange)
-                                .position(x: foxPosition.x * cellSize + cellSize / 2, y: foxPosition.y * cellSize + cellSize / 2)
-                                .animation(.easeInOut, value: foxPosition)
+                                .position(x: chickPosition.x * cellSize + cellSize / 2, y: chickPosition.y * cellSize + cellSize / 2)
+                                .animation(.easeInOut, value: chickPosition)
                         }
                         .frame(width: cellSize * gridSize, height: cellSize * gridSize)
-                        //                    .background(
-                        //                        Image("backgroundGrids")
-                        //                            .resizable()
-                        //                            .scaledToFit()
-                        //                            .frame(width: cellSize * gridSize, height: cellSize * gridSize)
-                        //                            .clipped()
-                        //                    )
                         Spacer()
                     }
                     .gesture(DragGesture(minimumDistance: 5).onEnded { gesture in
                         if isGameActive {
-                            moveFox(direction: gesture.translation)
+                            moveChick(direction: gesture.translation)
                         }
                     })
                     .onReceive(timer) { _ in
@@ -87,13 +68,13 @@ struct ChickCooGame: View {
                             timeRemaining -= 1
                         } else {
                             isGameActive = false
-                            stopFoxAnimation()
+                            stopChickAnimation()
                         }
                     }
                     .onAppear {
-                        startFoxAnimation()
+                        startChickAnimation()
                         spawnObjects()
-                        foxPosition = randomEmptyPosition()
+                        chickPosition = randomEmptyPosition()
                     }
                     Text("\(timeRemaining) SECONDS")
                         .foregroundColor(.white)
@@ -105,7 +86,6 @@ struct ChickCooGame: View {
                             .resizable()
                             .frame(width: 70, height: 70)
                             .onTapGesture {
-                                //pauseGame()
                                 showPauseScreen = true
                             }
                         Spacer()
@@ -119,7 +99,6 @@ struct ChickCooGame: View {
                 if showPauseScreen {
                     MenuDialogView(type: .PAUSE, resumeAction: {
                         showPauseScreen = false
-                            //resumeGame()
                     }, restartAction: {
                         restartGame()
                         showPauseScreen = false
@@ -130,7 +109,6 @@ struct ChickCooGame: View {
                 
                 if gameOver {
                     MenuDialogView(type: .GAMEOVER, resumeAction: {}, restartAction: {
-                       // restartGame()
                     }, menuAction: {
                         Navigator.shared.selectedScreen = .MENU
                     })
@@ -154,18 +132,18 @@ struct ChickCooGame: View {
         )
     }
 
-    private func moveFox(direction: CGSize) {
-        let newFoxPosition: CGPoint
+    private func moveChick(direction: CGSize) {
+        let newChickPosition: CGPoint
 
         if abs(direction.width) > abs(direction.height) {
-            newFoxPosition = CGPoint(x: foxPosition.x + (direction.width > 0 ? 1 : -1), y: foxPosition.y)
+            newChickPosition = CGPoint(x: chickPosition.x + (direction.width > 0 ? 1 : -1), y: chickPosition.y)
         } else {
-            newFoxPosition = CGPoint(x: foxPosition.x, y: foxPosition.y + (direction.height > 0 ? 1 : -1))
+            newChickPosition = CGPoint(x: chickPosition.x, y: chickPosition.y + (direction.height > 0 ? 1 : -1))
         }
 
-        guard isValidPosition(newFoxPosition) else { return }
-        foxPosition = newFoxPosition
-        handleCollision(at: foxPosition)
+        guard isValidPosition(newChickPosition) else { return }
+        chickPosition = newChickPosition
+        handleCollision(at: chickPosition)
     }
 
     private func isValidPosition(_ position: CGPoint) -> Bool {
@@ -190,7 +168,7 @@ struct ChickCooGame: View {
 
         if coins.isEmpty && bonusItems.isEmpty {
             isGameActive = false
-            stopFoxAnimation()
+            stopChickAnimation()
         }
     }
 
@@ -216,41 +194,38 @@ struct ChickCooGame: View {
 
     private func resetGame() {
         spawnObjects()
-        foxPosition = randomEmptyPosition()
+        chickPosition = randomEmptyPosition()
         score = 0
         timeRemaining = 60
         isGameActive = true
-        startFoxAnimation()
+        startChickAnimation()
     }
 
-    private func startFoxAnimation() {
-        stopFoxAnimation()
+    private func startChickAnimation() {
+        stopChickAnimation()
         animationTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
-            self.currentFoxImage = (self.currentFoxImage == "chickenPlayer1") ? "chickenPlayer2" : "chickenPlayer1"
+            self.currentChickImage = (self.currentChickImage == "chickenPlayer1") ? "chickenPlayer2" : "chickenPlayer1"
         }
     }
 
-    private func stopFoxAnimation() {
+    private func stopChickAnimation() {
         animationTimer?.invalidate()
         animationTimer = nil
     }
     
     private func restartGame() {
-        // Reset game state variables
-        foxPosition = randomEmptyPosition()
-        currentFoxImage = "chickenPlayer1"
+        chickPosition = randomEmptyPosition()
+        currentChickImage = "chickenPlayer1"
         coins.removeAll()
         bonusItems.removeAll()
         bushes.removeAll()
-       // score = 0
         timeRemaining = 60
         isGameActive = true
         gameOver = false
         showPauseScreen = false
         
-        // Restart game elements
         spawnObjects()
-        startFoxAnimation()
+        startChickAnimation()
     }
 }
 

@@ -32,7 +32,7 @@ struct MenuScreen: View {
                 }
                 
                 
-                
+             
                 
                 VStack(spacing: 30) {
                     
@@ -141,12 +141,14 @@ struct MenuScreen: View {
                                 .scaledToFit()
                             
                             ScoreView()
+                                .padding(.bottom)
                         }
                     }
                       
                    
                     
                 }
+                
                 
                 HStack {
                     VerticalDashedLine()
@@ -159,6 +161,29 @@ struct MenuScreen: View {
                 
                
                 
+                VStack {
+                    Spacer()
+                    HStack {
+                        Image(.music)
+                            .resizable()
+                            .frame(width: 70, height: 70)
+                            .onTapGesture {
+                               // showPause = true
+
+                            }
+                        Spacer()
+                        
+                        Image(.policy)
+                            .resizable()
+                            .frame(width: 70, height: 70)
+                            .onTapGesture {
+                               // showPause = true
+
+                            }
+                    }
+                  
+                }
+                .padding()
             }
             .frame(width: geo.size.width, height: geo.size.height)
             
