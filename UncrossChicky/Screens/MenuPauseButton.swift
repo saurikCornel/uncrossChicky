@@ -19,15 +19,20 @@ struct MenuPauseButton: View {
         
         ZStack {
             RoundedRectangle(cornerRadius: 50)
-                .fill(Color(hex: "#00CBEC"))
+                .fill(Color(hex: "#22224D"))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 50)
+                            .stroke(Color.white, lineWidth: 3)
+                            )
             
             Text(text)
+                .foregroundColor(.white)
                
         }
         
         .frame(width: 150, height: 40)
         .onTapGesture {
-            action()
+            Navigator.shared.selectedScreen = .MENU
         }
         
            

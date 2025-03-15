@@ -18,6 +18,11 @@ struct ChickCooGame: View {
     @AppStorage("coins") var score: Int = 0
     @State private var timeRemaining = 60
     @State private var isGameActive = true
+    
+    
+    @State var showPauseScreen = false
+    @State var gameOver = false
+    
 
     let gridSize: CGFloat = 6
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -28,70 +33,109 @@ struct ChickCooGame: View {
             let availableHeight = geometry.size.height * 0.8
             let gridSizeInPoints = min(availableWidth, availableHeight)
             let cellSize = gridSizeInPoints / gridSize
-
-            VStack {
-                ZStack {
+            ZStack {
+                VStack {
+                    ZStack {
+                        HStack {
+                            //                        Button(action: {
+                            //                            presentationMode.wrappedValue.dismiss()
+                            //                        }) {
+                            //                            Image("backBtn")
+                            //                                .resizable()
+                            //                                .frame(width: 30, height: 30)
+                            //                        }
+                            Spacer()
+//                            ScoreView()
+//                                .scaleEffect(0.74)
+                        }
+                      
+                    }
+                    .padding(.top)
+                    .padding(.horizontal)
+                    .frame(height: 30)
+                    
+                    Spacer()
+                    VStack {
+                        Spacer()
+                        
+                        ZStack(alignment: .topLeading) {
+                            GridView(gridSize: gridSize, cellSize: cellSize, coins: coins, bonusItems: bonusItems, bushes: bushes)
+                            Image(currentFoxImage)
+                                .resizable()
+                                .frame(width: cellSize * 0.75, height: cellSize * 0.75)
+                                .foregroundColor(.orange)
+                                .position(x: foxPosition.x * cellSize + cellSize / 2, y: foxPosition.y * cellSize + cellSize / 2)
+                                .animation(.easeInOut, value: foxPosition)
+                        }
+                        .frame(width: cellSize * gridSize, height: cellSize * gridSize)
+                        //                    .background(
+                        //                        Image("backgroundGrids")
+                        //                            .resizable()
+                        //                            .scaledToFit()
+                        //                            .frame(width: cellSize * gridSize, height: cellSize * gridSize)
+                        //                            .clipped()
+                        //                    )
+                        Spacer()
+                    }
+                    .gesture(DragGesture(minimumDistance: 5).onEnded { gesture in
+                        if isGameActive {
+                            moveFox(direction: gesture.translation)
+                        }
+                    })
+                    .onReceive(timer) { _ in
+                        if timeRemaining > 0 {
+                            timeRemaining -= 1
+                        } else {
+                            isGameActive = false
+                            stopFoxAnimation()
+                        }
+                    }
+                    .onAppear {
+                        startFoxAnimation()
+                        spawnObjects()
+                        foxPosition = randomEmptyPosition()
+                    }
+                    Text("\(timeRemaining) SECONDS")
+                        .foregroundColor(.white)
+                }
+                .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                VStack {
                     HStack {
-//                        Button(action: {
-//                            presentationMode.wrappedValue.dismiss()
-//                        }) {
-//                            Image("backBtn")
-//                                .resizable()
-//                                .frame(width: 30, height: 30)
-//                        }
+                        Image(.pauseButton)
+                            .resizable()
+                            .frame(width: 70, height: 70)
+                            .onTapGesture {
+                                //pauseGame()
+                                showPauseScreen = true
+                            }
                         Spacer()
                         ScoreView()
-                            .scaleEffect(0.74)
                     }
-                    Text("\(timeRemaining) SEC")
-                }
-                .padding(.top)
-                .padding(.horizontal)
-                .frame(height: 30)
-
-                Spacer()
-                VStack {
+                    .padding()
                     Spacer()
-
-                    ZStack(alignment: .topLeading) {
-                        GridView(gridSize: gridSize, cellSize: cellSize, coins: coins, bonusItems: bonusItems, bushes: bushes)
-                        Image(currentFoxImage)
-                            .resizable()
-                            .frame(width: cellSize * 0.75, height: cellSize * 0.75)
-                            .foregroundColor(.orange)
-                            .position(x: foxPosition.x * cellSize + cellSize / 2, y: foxPosition.y * cellSize + cellSize / 2)
-                            .animation(.easeInOut, value: foxPosition)
-                    }
-                    .frame(width: cellSize * gridSize, height: cellSize * gridSize)
-//                    .background(
-//                        Image("backgroundGrids")
-//                            .resizable()
-//                            .scaledToFit()
-//                            .frame(width: cellSize * gridSize, height: cellSize * gridSize)
-//                            .clipped()
-//                    )
-                    Spacer()
+                    
                 }
-                .gesture(DragGesture(minimumDistance: 5).onEnded { gesture in
-                    if isGameActive {
-                        moveFox(direction: gesture.translation)
-                    }
-                })
-                .onReceive(timer) { _ in
-                    if timeRemaining > 0 {
-                        timeRemaining -= 1
-                    } else {
-                        isGameActive = false
-                        stopFoxAnimation()
-                    }
+                
+                if showPauseScreen {
+                    MenuDialogView(type: .PAUSE, resumeAction: {
+                        showPauseScreen = false
+                            //resumeGame()
+                    }, restartAction: {
+                        restartGame()
+                        showPauseScreen = false
+                    }, menuAction: {
+                        Navigator.shared.selectedScreen = .MENU
+                    })
                 }
-                .onAppear {
-                    startFoxAnimation()
-                    spawnObjects()
-                    foxPosition = randomEmptyPosition()
+                
+                if gameOver {
+                    MenuDialogView(type: .GAMEOVER, resumeAction: {}, restartAction: {
+                       // restartGame()
+                    }, menuAction: {
+                        Navigator.shared.selectedScreen = .MENU
+                    })
                 }
             }
-            .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
         }
         .dimmedOverlay(isActive: !isGameActive, overlayView: GameOverWindow(score: score, actionOnAppearIfNeeded:  {
             
@@ -189,6 +233,24 @@ struct ChickCooGame: View {
     private func stopFoxAnimation() {
         animationTimer?.invalidate()
         animationTimer = nil
+    }
+    
+    private func restartGame() {
+        // Reset game state variables
+        foxPosition = randomEmptyPosition()
+        currentFoxImage = "chickenPlayer1"
+        coins.removeAll()
+        bonusItems.removeAll()
+        bushes.removeAll()
+       // score = 0
+        timeRemaining = 60
+        isGameActive = true
+        gameOver = false
+        showPauseScreen = false
+        
+        // Restart game elements
+        spawnObjects()
+        startFoxAnimation()
     }
 }
 
